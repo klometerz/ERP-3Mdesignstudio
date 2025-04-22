@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',
     ];
 
     /**
@@ -50,4 +51,9 @@ class User extends Authenticatable
 {
     return $this->belongsTo(\App\Models\Role::class);
 }
+public function pelanggan()
+{
+    return $this->hasOne(\App\Models\Pelanggan::class);
+}
+
 }

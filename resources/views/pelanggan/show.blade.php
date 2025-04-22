@@ -7,6 +7,19 @@
 </div>
 
 <h1 class="h3 mb-4">{{ $title ?? 'Title' }}</h1>
+@auth
+    @if(auth()->user()->role->name === 'admin' && $pelanggan->plain_password)
+        <div class="alert alert-info mt-3">
+            <strong>Password Akun:</strong> {{ $pelanggan->plain_password }}
+        </div>
+        <form action="{{ route('pelanggan.clearPassword', $pelanggan->id) }}" method="POST">
+    @csrf
+    @method('PATCH')
+    <button class="btn btn-sm btn-danger mt-2">Hapus Password Akun</button>
+</form>
+
+    @endif
+@endauth
 
 
     <div class="card">

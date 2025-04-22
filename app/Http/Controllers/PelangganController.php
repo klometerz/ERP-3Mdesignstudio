@@ -4,20 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class PelangganController extends Controller
 {
     public function index()
-{
-    $pelanggan = Pelanggan::paginate(10);
+    {
+        $pelanggan = Pelanggan::paginate(10);
 
-    return view('pelanggan.index', [
-        'pelanggan' => $pelanggan,
-        'title' => 'Data Pelanggan'
-    ]);
-}
-
-    
+        return view('pelanggan.index', [
+            'pelanggan' => $pelanggan,
+            'title' => 'Data Pelanggan'
+        ]);
+    }
 
     public function create()
     {
@@ -30,7 +31,7 @@ class PelangganController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'email' => 'required|email|unique:users,email',
             'telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string|max:255',
             'kota' => 'nullable|string|max:100',
@@ -40,50 +41,86 @@ class PelangganController extends Controller
             'kode_negara' => 'nullable|string|max:5',
             'status_pelanggan' => 'required|in:Aktif,Tidak Aktif',
         ]);
-    
-        $tahun = date('Y'); // Tahun sekarang, misal: 2025
-        $bulan = date('m'); // Bulan sekarang, misal: 04
-    
-        // Hitung jumlah pelanggan di bulan ini
-        $countThisMonth = \App\Models\Pelanggan::whereYear('created_at', $tahun)
-                                                ->whereMonth('created_at', $bulan)
-                                                ->count();
-    
-        $nextNumber = str_pad($countThisMonth + 1, 3, '0', STR_PAD_LEFT); // Format 001, 002, 003
-    
+
+        // Generate kode pelanggan unik
+        $tahun = date('Y');
+        $bulan = date('m');
+        $countThisMonth = Pelanggan::whereYear('created_at', $tahun)
+                                   ->whereMonth('created_at', $bulan)
+                                   ->count();
+        $nextNumber = str_pad($countThisMonth + 1, 3, '0', STR_PAD_LEFT);
         $kodePelanggan = "PEL-{$tahun}-{$bulan}-{$nextNumber}";
-    
-        $data = $request->only([
-            'nama',
-            'email',
-            'telepon',
-            'alamat',
-            'kota',
-            'provinsi',
-            'zipcode',
-            'negara',
-            'kode_negara',
-            'status_pelanggan'
+
+        // Generate password & hash
+        $plainPassword = Str::random(8);
+        $hashedPassword = Hash::make($plainPassword);
+
+        // Buat akun user
+        $user = User::create([
+            'name' => $request->nama,
+            'email' => $request->email,
+            'password' => $hashedPassword,
+            'role_id' => 2,
         ]);
-    
-        $data['kode_pelanggan'] = $kodePelanggan;
-        $data['is_dummy'] = false;
-    
-        \App\Models\Pelanggan::create($data);
-    
-        return redirect()->route('pelanggan.index')
-                         ->with('success', 'Pelanggan berhasil ditambahkan!');
+
+        // Buat data pelanggan terhubung user_id
+        $pelanggan = Pelanggan::create([
+            'user_id' => $user->id,
+            'kode_pelanggan' => $kodePelanggan,
+            'nama' => $request->nama,
+            'email' => $request->email,
+            'telepon' => $request->telepon,
+            'alamat' => $request->alamat,
+            'kota' => $request->kota,
+            'provinsi' => $request->provinsi,
+            'zipcode' => $request->zipcode,
+            'negara' => $request->negara,
+            'kode_negara' => $request->kode_negara,
+            'status_pelanggan' => $request->status_pelanggan,
+            'plain_password' => $plainPassword,
+            'is_dummy' => false,
+        ]);
+
+        return redirect()->route('pelanggan.index')->with('success', 'Pelanggan & akun berhasil dibuat. Password: ' . $plainPassword);
     }
-    
-
-
 
     public function show($id)
     {
         $pelanggan = Pelanggan::with('orders')->findOrFail($id);
+
+        if (auth()->user()->role->name === 'admin') {
+            return view('pelanggan.show', [
+                'pelanggan' => $pelanggan,
+                'title' => 'Detail Pelanggan'
+            ]);
+        }
+
+        if (auth()->user()->role->name === 'pelanggan') {
+            if (auth()->user()->id !== $pelanggan->user_id) {
+                abort(403, 'Anda tidak memiliki akses ke data ini.');
+            }
+
+            return view('pelanggan.show', [
+                'pelanggan' => $pelanggan,
+                'title' => 'Profil Saya'
+            ]);
+        }
+
+        abort(403, 'Akses ditolak.');
+    }
+
+    public function myProfile()
+    {
+        $user = auth()->user();
+        $pelanggan = $user->pelanggan;
+
+        if (!$pelanggan || $pelanggan->status_pelanggan !== 'Aktif') {
+            abort(403, 'Akses tidak diizinkan.');
+        }
+
         return view('pelanggan.show', [
             'pelanggan' => $pelanggan,
-            'title' => 'Detail Pelanggan'
+            'title' => 'Profil Saya'
         ]);
     }
 
@@ -117,5 +154,13 @@ class PelangganController extends Controller
         $pelanggan->delete();
 
         return redirect()->route('pelanggan.index')->with('success', 'Data pelanggan berhasil dihapus!');
+    }
+
+    public function clearPassword($id)
+    {
+        $pelanggan = Pelanggan::findOrFail($id);
+        $pelanggan->update(['plain_password' => null]);
+
+        return redirect()->route('pelanggan.show', $id)->with('success', 'Password akun disembunyikan.');
     }
 }

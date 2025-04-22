@@ -11,6 +11,8 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+
+    
     /**
      * Display the login view.
      */
@@ -22,14 +24,48 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+    public function store(LoginRequest $request)
+{
+    $request->authenticate();
+    $request->session()->regenerate();
 
-        $request->session()->regenerate();
+    $user = auth()->user();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+    // Cek role null
+    if (!$user->role) {
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login')->withErrors([
+            'email' => 'Akun tidak memiliki role valid.',
+        ]);
     }
+
+    if ($user->role->name === 'admin') {
+        return redirect('/pelanggan');
+    }
+    if ($user->role->name === 'pelanggan') {
+        return redirect()->route('pelanggan.profile'); // ✅ bukan pelanggan.show lagi
+    }
+    
+    if ($user->role->name === 'pelanggan') {
+        $pelanggan = $user->pelanggan;
+
+        if (!$pelanggan || $pelanggan->status_pelanggan !== 'Aktif') {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun Anda sudah tidak aktif.',
+            ]);
+        }
+
+        return redirect()->route('pelanggan.show', $pelanggan->id);
+    }
+
+    return redirect('/dashboard');
+}
+
 
     /**
      * Destroy an authenticated session.

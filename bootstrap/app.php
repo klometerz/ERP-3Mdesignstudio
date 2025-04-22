@@ -12,9 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
+            // 🛡️ Role-based Access Control
             'role' => \App\Http\Middleware\CheckRole::class,
+
+            // 🔒 Cek status pelanggan saat akses
+            'pelanggan.aktif' => \App\Http\Middleware\CheckPelangganStatus::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+        // Handle error report here (optional)
+    })
+    ->create();
