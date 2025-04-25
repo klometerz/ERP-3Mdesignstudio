@@ -6,7 +6,7 @@
         <div class="col-md-8">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-                @include('components.breadcrumb')
+               
             </div>
 
             <h1 class="h3 mb-4">Tambah Order</h1>

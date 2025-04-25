@@ -18,6 +18,7 @@ function highlight($text, $search) {
 @extends('layouts.app')
 
 @section('content')
+
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3">Data Pegawai</h1>

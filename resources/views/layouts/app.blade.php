@@ -1,111 +1,92 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'ERP - 3M Design Studio')</title>
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Optional: Bootstrap CDN (if not fully using Tailwind) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light text-dark">
 
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{{ url('/') }}">
+                🏗️ ERP 3M Studio
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <title>3M Studio</title>
+            <div class="collapse navbar-collapse" id="navbarContent">
+    @auth
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            @switch(auth()->user()->role->name)
+                @case('admin')
+                    <li class="nav-item"><a class="nav-link" href="{{ route('pelanggan.index') }}">Pelanggan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('orders.index') }}">Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('pegawai.index') }}">Pegawai</a></li>
+                    @break
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+                    @case('pelanggan')
+    {{-- Optional: navbar placeholder non-clickable --}}
+    <li class="nav-item">
+        <span class="nav-link disabled text-muted">Profil Saya</span>
+    </li>
+    @break
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            @endswitch
+        </ul>
 
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+        {{-- Kanan: User Dropdown --}}
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                    {{ auth()->user()->name }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Edit Profil</a></li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button class="dropdown-item text-danger">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    @else
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+        </ul>
+    @endauth
+</div>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <!-- Page Content -->
-            <main>
-            @yield('content')
-            </main>
         </div>
+    </nav>
+
+    <main class="container py-4">
+        {{-- Flash Notif --}}
         @if (session('success'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: "{{ session('success') }}",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true
-    });
-</script>
-@endif
-@if (session('success'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: '{{ session('success') }}',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
-</script>
-@endif
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @elseif (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
 
-@if (session('error'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'error',
-        title: '{{ session('error') }}',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
-</script>
-@endif
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('uploadFotoAfterForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const uploadingText = document.getElementById('uploadingText');
+        {{-- Breadcrumb (Optional) --}}
+        @include('components.breadcrumb')
 
-    if (form) {
-        form.addEventListener('submit', function () {
-            submitBtn.disabled = true;
-            uploadingText.style.display = 'block';
-        });
-    }
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const createForm = document.getElementById('createOrderForm');
-    const submitCreateBtn = document.getElementById('submitCreateBtn');
-    const uploadingCreateText = document.getElementById('uploadingCreateText');
+        {{-- Page Title --}}
+        <h1 class="h3 mb-4">@yield('title')</h1>
 
-    if (createForm) {
-        createForm.addEventListener('submit', function () {
-            submitCreateBtn.disabled = true;
-            uploadingCreateText.style.display = 'block';
-        });
-    }
-});
-</script>
+        {{-- Page Content --}}
+        @yield('content')
+    </main>
 
-    </body>
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

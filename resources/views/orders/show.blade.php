@@ -6,7 +6,7 @@
         <div class="col-md-8">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-                @include('components.breadcrumb')
+                
             </div>
 
             <h1 class="h3 mb-4">{{ $title ?? 'Detail Order' }}</h1>
@@ -53,24 +53,20 @@
         -
     @endif
 </dd>
-@if (auth()->check())
+@if (auth()->check() && auth()->user()->role->name === 'admin')
     <div class="mt-5">
         <h5>Upload Foto After (Pekerjaan Selesai)</h5>
 
-        <form id="uploadFotoAfterForm" action="{{ route('orders.uploadFotoAfter', $order->id) }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    <div class="mb-3">
-        <input type="file" name="foto_after" class="form-control" required>
-    </div>
-    <button id="submitBtn" type="submit" class="btn btn-primary">Upload Foto After</button>
-
-    <div id="uploadingText" class="text-info mt-2" style="display: none;">
-        <strong>Uploading... Please wait ⏳</strong>
-    </div>
-</form>
-
+        <form action="{{ route('orders.uploadFotoAfter', $order->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="mb-3">
+                <input type="file" name="foto_after" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Foto After</button>
+        </form>
     </div>
 @endif
+
 
 
                     <div class="text-end">

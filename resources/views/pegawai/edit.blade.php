@@ -4,6 +4,9 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+    @include('components.breadcrumb')
+</div>
             <div class="card shadow-sm">
                 <div class="card-header bg-warning text-dark">
                     Edit Pegawai

@@ -68,16 +68,41 @@ class OrderController extends Controller
     }
 
     public function show($id)
-    {
-        $order = Order::with('pelanggan', 'updatedBy')->findOrFail($id);
+{
+    $order = Order::with('pelanggan')->findOrFail($id);
+    $user = auth()->user();
+
+    // ✅ Admin bebas lihat semua
+    if ($user->role->name === 'admin') {
         return view('orders.show', [
             'order' => $order,
             'title' => 'Detail Order'
         ]);
     }
 
+    // ✅ Pelanggan hanya boleh lihat order miliknya sendiri
+    if ($user->role->name === 'pelanggan') {
+        if ($order->pelanggan->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses ke order ini.');
+        }
+
+        return view('orders.show', [
+            'order' => $order,
+            'title' => 'Detail Order'
+        ]);
+    }
+
+    abort(403);
+}
+
+
     public function edit($id)
     {
+        $user = auth()->user();
+
+        if ($user->role->name !== 'admin') {
+            abort(403, 'Anda tidak punya akses edit.');
+        }
         $order = Order::findOrFail($id);
         $pelanggan = Pelanggan::all();
         return view('orders.edit', [
@@ -139,6 +164,11 @@ class OrderController extends Controller
 
     public function destroy($id)
     {
+        $user = auth()->user();
+
+        if ($user->role->name !== 'admin') {
+            abort(403, 'Anda tidak punya akses edit.');
+        }
         $order = Order::findOrFail($id);
         $pelanggan_id = $order->pelanggan_id;
         $order->delete();
@@ -149,6 +179,14 @@ class OrderController extends Controller
 
     public function uploadFotoAfter(Request $request, $id)
 {
+
+    $user = auth()->user();
+
+    // 🚫 Cegah semua role kecuali admin
+    if ($user->role->name !== 'admin') {
+        abort(403, 'Anda tidak memiliki akses untuk upload foto.');
+    }
+
     $request->validate([
         'foto_after' => 'required|image|mimes:jpg,jpeg,png|max:2048',
     ]);
