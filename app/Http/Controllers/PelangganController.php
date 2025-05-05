@@ -10,15 +10,27 @@ use Illuminate\Support\Facades\Hash;
 
 class PelangganController extends Controller
 {
-    public function index()
-    {
-        $pelanggan = Pelanggan::paginate(10);
+    public function index(Request $request)
+{
+    $query = Pelanggan::query();
 
-        return view('pelanggan.index', [
-            'pelanggan' => $pelanggan,
-            'title' => 'Data Pelanggan'
-        ]);
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where('nama', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhere('telepon', 'like', "%{$search}%")
+              ->orWhere('kota', 'like', "%{$search}%");
     }
+
+    $pelanggan = $query->paginate(10)->withQueryString();
+
+    return view('pelanggan.index', [
+        'pelanggan' => $pelanggan,
+        'title' => 'Data Pelanggan',
+    ]);
+    
+}
+
 
     public function create()
     {

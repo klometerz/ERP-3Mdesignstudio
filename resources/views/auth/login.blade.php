@@ -4,15 +4,14 @@
 
 @section('content')
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card shadow-lg border-0">
             <div class="card-body p-5">
-                <div class="text-center mb-4">
+                <div class="login-logo">
                     {{-- Logo Optional --}}
                     <img src="{{ asset('logo.png') }}" alt="Logo" class="img-fluid mb-3" style="max-height: 60px;">
-                    <h3 class="fw-bold">Login ERP - 3M Design Studio</h3>
                 </div>
-
+                <h3 class="fw-bold">ERP - 3M Design Studio</h3>
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <strong>Oops!</strong> {{ $errors->first() }}
@@ -56,4 +55,17 @@
         </div>
     </div>
 </div>
+<style>
+  .login-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  .login-logo img {
+    max-width: 150px;
+    height: auto;
+  }
+</style>
+
 @endsection

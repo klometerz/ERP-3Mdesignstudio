@@ -9,8 +9,12 @@
                
             </div>
 
-            <h1 class="h3 mb-4">Tambah Order</h1>
-
+          
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                <h1 class="h3 mb-4">{{ $title ?? 'Title' }}</h1>
+                </div>
+                <div class="card-body">
             <form id="createOrderForm" action="{{ route('orders.store') }}" method="POST" enctype="multipart/form-data">
 
                 @csrf
@@ -75,6 +79,7 @@
         <strong>Uploading... Please wait ⏳</strong>
     </div>
             </form>
+</div>
 
         </div>
     </div>

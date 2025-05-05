@@ -2,13 +2,15 @@
 
 @section('content')
 <div class="container">
-<div class="d-flex justify-content-between align-items-center mb-4">
-
-</div>
-
-<h1 class="h3 mb-4">{{ $title ?? 'Title' }}</h1>
+<div class="row justify-content-center">
 
 
+<div class="col-md-8">
+<div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                <h1 class="h3 mb-4">{{ $title ?? 'Title' }}</h1>
+                </div>
+                <div class="card-body">
     <form action="{{ route('pelanggan.update', $pelanggan->id) }}" method="POST">
         @csrf
         @method('PUT')
@@ -61,5 +63,6 @@
             <button class="btn btn-primary">Update</button>
         </div>
     </form>
+</div>
 </div>
 @endsection

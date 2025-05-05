@@ -9,14 +9,30 @@ use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
-    public function index()
-    {
-        $orders = Order::with('pelanggan')->paginate(10);
-        return view('orders.index', [
-            'orders' => $orders,
-            'title' => 'Data Order'
-        ]);
+    public function index(Request $request)
+{
+    $query = Order::with('pelanggan');
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->whereHas('pelanggan', function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%");
+            })
+            ->orWhere('tanggal_order', 'like', "%{$search}%")
+            ->orWhere('nilai_order', 'like', "%{$search}%")
+            ->orWhere('status_order', 'like', "%{$search}%")
+            ->orWhere('nama_pekerjaan', 'like', "%{$search}%");
     }
+
+    $orders = $query->paginate(10)->withQueryString();
+
+    return view('orders.index', [
+        'orders' => $orders,
+        'title' => 'Data Order'
+    ]);
+}
+
+
 
     public function create(Request $request)
     {
@@ -207,3 +223,4 @@ class OrderController extends Controller
 }
 
 }
+
